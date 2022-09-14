@@ -1,0 +1,33 @@
+---
+title: "heart_failure"
+author: "Rob Meulenkamp"
+date: '2022-09-14'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Introduction
+
+
+
+## Read the data
+
+```{r}
+heart <- read.csv("data/heart.csv")
+
+```
+
+
+
+
+```{r}
+heart$Cholesterol[heart$Cholesterol == 0] <- mean(heart$Cholesterol)
+
+summary(heart)
+cor(heart$HeartDisease, heart$RestingBP)
+```
+
