@@ -13,21 +13,32 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Introduction
 
 
+#Research question
+
+Is it feasible to produce an accurate machine learning algorithm that predicts the possibility of developing a heart disease in a wide array of patients? 
 
 ## Read the data
 
 ```{r}
-heart <- read.csv("data/heart.csv")
+heartdata <- read.csv("data/heart.csv")
+#Age RestingBP Cholesterol MaxHR Oldpeak
+heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
+heartdata$FastingBS <- as.logical(heartdata$FastingBS)
+```
 
+```{r Cleaning}
+
+# Changes Y/N to Boolean
+heartdata$ExerciseAngina = heartdata$ExerciseAngina == "Y"
+heartdata$FastingBS = as.logical(heartdata$FastingBS)
 ```
 
 
 
 
 ```{r}
-heart$Cholesterol[heart$Cholesterol == 0] <- mean(heart$Cholesterol)
 
-summary(heart)
-cor(heart$HeartDisease, heart$RestingBP)
+summary(heartdata)
+cor(heartdata$HeartDisease, heart$RestingBP)
 ```
 
