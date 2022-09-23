@@ -7,10 +7,24 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(kableExtra)
+library(scales)
+library(reshape2)
+library(factoextra)
+library(tibble)
+library(ggpubr)
+library(pROC)
 ```
 
 
 ## Introduction
+
+
+
+
+Data:
+https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download
 
 
 #Research question
@@ -19,26 +33,82 @@ Is it feasible to produce an accurate machine learning algorithm that predicts t
 
 ## Read the data
 
-```{r}
+```{r load in data}
+
 heartdata <- read.csv("data/heart.csv")
-#Age RestingBP Cholesterol MaxHR Oldpeak
-heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
-heartdata$FastingBS <- as.logical(heartdata$FastingBS)
+
 ```
+
+
 
 ```{r Cleaning}
 
+heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
+heartdata$FastingBS <- as.logical(heartdata$FastingBS)
+
 # Changes Y/N to Boolean
-heartdata$ExerciseAngina = heartdata$ExerciseAngina == "Y"
-heartdata$FastingBS = as.logical(heartdata$FastingBS)
+heartdata$ExerciseAngina <- heartdata$ExerciseAngina == "Y"
+heartdata$FastingBS <- as.logical(heartdata$FastingBS)
 ```
 
 
+
+```{r Codebook}
+sr <- data.frame("attribute" = colnames(heartdata),
+                 "type" = sapply(heartdata, typeof), 
+                 "class" = sapply(heartdata, class),
+                 row.names = NULL)
+codebook <- as_tibble(sr)
+kable(codebook, caption = "Codebook") %>%
+  kable_styling(latex_options = c("hold_position"))
+```
+
+
+
+```{r Summary}
+summ <- summary(heartdata[c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")])
+tab <- sub('.*:', '', summ)
+rownames(tab) <- c("Min", "1st. Qu", "Median", "Mean", "3rd. Qu", "Max")
+kable(tab, caption = "5 num of numerical valies") %>% 
+  kable_styling(latex_options="scale_down")
+```
 
 
 ```{r}
+ggplot(heartdata) +
+  geom_bar(aes(Sex, fill=HeartDisease)) +
+  labs(title="Man vs Women having heartdisease") +
+  ylab("frequency")
 
-summary(heartdata)
-cor(heartdata$HeartDisease, heart$RestingBP)
 ```
+
+```{r}
+ggplot(heartdata, aes(Age, fill=HeartDisease)) +
+  geom_histogram(bins=10) +
+  ylab("Frequency") +
+  ggtitle("Frequency heart disease for age")
+```
+
+
+```{r}
+ggplot(heartdata) + 
+  geom_smooth(aes(Age, HeartDisease * 100), method="loess", formula = "y ~ x", color=hue_pal()(1)) + 
+  ylab("Heart Disease (%)") + 
+  xlab("Age (years)") +
+  ggtitle("Percentage of patients affected by heart disease") + 
+  ylim(c(0, 100)) +
+  xlim(c(25, 80))
+
+```
+
+```{r}
+
+
+
+```
+
+
+
+
+
 
