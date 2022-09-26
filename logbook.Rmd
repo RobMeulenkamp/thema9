@@ -17,17 +17,20 @@ library(ggpubr)
 library(pROC)
 ```
 
+# EDA logbook
 
 ## Introduction
+Cardiovascular diseases (CVD) is one of the most common death globally. This makes up for 31% of all deaths worldwide. Heart disease is provoked by atherosclerosis. This means the buildup of plaques or fatty deposits in the walls of the coronary arteries in several years.  
+The coronary arteries enclose the outside of the heart and provide blood oxygen and nutrients to the heart muscle. If the plaque builds up in the arteries, there is fewer space for blood to flow naturally and deliver oxygen to the heart. This possibly cause angina (chest pain) or a heart attack. Four out of five CVD deaths are result of heart attacks and strokes. One-third of these deaths appear in people under the age of 70.
 
-
+This dataset include 11 features that are viable to use for predicting a heart disease
 
 
 Data:
 https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download
 
 
-#Research question
+## Research question
 
 Is it feasible to produce an accurate machine learning algorithm that predicts the possibility of developing a heart disease in a wide array of patients? 
 
@@ -39,7 +42,7 @@ heartdata <- read.csv("data/heart.csv")
 
 ```
 
-
+## Parsing data
 
 ```{r Cleaning}
 
@@ -54,16 +57,16 @@ heartdata$FastingBS <- as.logical(heartdata$FastingBS)
 
 
 ```{r Codebook}
-sr <- data.frame("attribute" = colnames(heartdata),
+code_frame <- data.frame("attribute" = colnames(heartdata),
                  "type" = sapply(heartdata, typeof), 
                  "class" = sapply(heartdata, class),
                  row.names = NULL)
-codebook <- as_tibble(sr)
+codebook <- as_tibble(code_frame)
 kable(codebook, caption = "Codebook") %>%
   kable_styling(latex_options = c("hold_position"))
 ```
 
-
+## Summary
 
 ```{r Summary}
 summ <- summary(heartdata[c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")])
@@ -72,15 +75,9 @@ rownames(tab) <- c("Min", "1st. Qu", "Median", "Mean", "3rd. Qu", "Max")
 kable(tab, caption = "5 num of numerical valies") %>% 
   kable_styling(latex_options="scale_down")
 ```
+## Visualisations 
 
-
-```{r}
-ggplot(heartdata) +
-  geom_bar(aes(Sex, fill=HeartDisease)) +
-  labs(title="Man vs Women having heartdisease") +
-  ylab("frequency")
-
-```
+### Histogram Age vs Heart disease
 
 ```{r}
 ggplot(heartdata, aes(Age, fill=HeartDisease)) +
@@ -89,6 +86,12 @@ ggplot(heartdata, aes(Age, fill=HeartDisease)) +
   ggtitle("Frequency heart disease for age")
 ```
 
+In the graph above, there is possibly a correlation between age and heart disease.
+When the age increases the frequency of heart diseases do as well. 
+This needs more investigation.
+
+
+### Age linked to heartdisease
 
 ```{r}
 ggplot(heartdata) + 
@@ -100,14 +103,44 @@ ggplot(heartdata) +
   xlim(c(25, 80))
 
 ```
+With Smooth line it is possible to see that the percentage of patients increases with age and heart disease. The only thing is that after the age of 65 there is starting a decline.  
+The reason for the decline is perhaps death for the people above 65 who have a heart disease.
+
+For people above the age of 65 are more likely to develop a heart disease which can cause heart attacks, strokes or heart failures. This is potentially the cause of the decline. 
+Source: [Heart Health and Aging](https://www.nia.nih.gov/health/heart-health-and-aging)
+
+
+
+## Ratio between males and females
 
 ```{r}
-
-
+ggplot(heartdata) +
+  geom_bar(aes(Sex, fill=HeartDisease)) +
+  labs(title="Man vs Women having heartdisease") +
+  ylab("frequency")
 
 ```
 
+The barplot shows the ratio between male and female. The ratio is more skewed towards males.
+The most noticeable is that males have a higher proportion to have heartdisease in comparison with the females. For the female, it is more likely to not have a heartdisease. 
 
+
+
+
+## Different pain types against other variables
+
+### Chestpain against heart disease 
+
+```{r}
+
+ggplot(heartdata) +
+  geom_bar(aes(ChestPainType, fill=HeartDisease)) + ggtitle("Chestpaintype vs heart disease")   + 
+  ylab("Frequency")
+  
+
+```
+
+In the barplot above, Asymptomatic pain (ASY) is the most frequent chest pain type for people with heart disease.
 
 
 
