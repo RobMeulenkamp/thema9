@@ -2,7 +2,9 @@
 title: "heart_failure"
 author: "Rob Meulenkamp"
 date: '2022-09-14'
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,6 +14,7 @@ library(kableExtra)
 library(scales)
 library(reshape2)
 library(factoextra)
+library(dplyr)
 library(tibble)
 library(ggpubr)
 library(pROC)
@@ -23,7 +26,7 @@ library(pROC)
 Cardiovascular diseases (CVD) is one of the most common death globally. This makes up for 31% of all deaths worldwide. Heart disease is provoked by atherosclerosis. This means the buildup of plaques or fatty deposits in the walls of the coronary arteries in several years.  
 The coronary arteries enclose the outside of the heart and provide blood oxygen and nutrients to the heart muscle. If the plaque builds up in the arteries, there is fewer space for blood to flow naturally and deliver oxygen to the heart. This possibly cause angina (chest pain) or a heart attack. Four out of five CVD deaths are result of heart attacks and strokes. One-third of these deaths appear in people under the age of 70.
 
-This dataset include 11 features that are viable to use for predicting a heart disease
+This data set include 11 features that are viable to use for predicting a heart disease.
 
 
 Data:
@@ -49,12 +52,14 @@ heartdata <- read.csv("data/heart.csv")
 heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
 heartdata$FastingBS <- as.logical(heartdata$FastingBS)
 
+
+
 # Changes Y/N to Boolean
 heartdata$ExerciseAngina <- heartdata$ExerciseAngina == "Y"
-heartdata$FastingBS <- as.logical(heartdata$FastingBS)
 ```
 
 
+## Codebook
 
 ```{r Codebook}
 code_frame <- data.frame("attribute" = colnames(heartdata),
@@ -66,6 +71,8 @@ kable(codebook, caption = "Codebook") %>%
   kable_styling(latex_options = c("hold_position"))
 ```
 
+
+
 ## Summary
 
 ```{r Summary}
@@ -75,11 +82,12 @@ rownames(tab) <- c("Min", "1st. Qu", "Median", "Mean", "3rd. Qu", "Max")
 kable(tab, caption = "5 num of numerical valies") %>% 
   kable_styling(latex_options="scale_down")
 ```
+
+\newpage
+
 ## Visualisations 
-
 ### Histogram Age vs Heart disease
-
-```{r}
+```{r fig.cap="Histogram of age against frequency for HD"}
 ggplot(heartdata, aes(Age, fill=HeartDisease)) +
   geom_histogram(bins=10) +
   ylab("Frequency") +
@@ -90,10 +98,9 @@ In the graph above, there is possibly a correlation between age and heart diseas
 When the age increases the frequency of heart diseases do as well. 
 This needs more investigation.
 
-
+\newpage
 ### Age linked to heartdisease
-
-```{r}
+```{r Age related to heartdisease, fig.cap="Percentage of patients impacted by HD"}
 ggplot(heartdata) + 
   geom_smooth(aes(Age, HeartDisease * 100), method="loess", formula = "y ~ x", color=hue_pal()(1)) + 
   ylab("Heart Disease (%)") + 
@@ -110,28 +117,24 @@ For people above the age of 65 are more likely to develop a heart disease which 
 Source: [Heart Health and Aging](https://www.nia.nih.gov/health/heart-health-and-aging)
 
 
+\newpage
+### Ratio between males and females
 
-## Ratio between males and females
-
-```{r}
+```{r Ratio male - female, fig.cap="Ratio Male - Female"}
 ggplot(heartdata) +
   geom_bar(aes(Sex, fill=HeartDisease)) +
   labs(title="Man vs Women having heartdisease") +
   ylab("frequency")
 
 ```
-
 The barplot shows the ratio between male and female. The ratio is more skewed towards males.
 The most noticeable is that males have a higher proportion to have heartdisease in comparison with the females. For the female, it is more likely to not have a heartdisease. 
 
 
 
+### Chest pain against heart disease 
 
-## Different pain types against other variables
-
-### Chestpain against heart disease 
-
-```{r}
+```{r Different chest pain types against heart disease, fig.cap="proportions between chest pain with or without heart disease"}
 
 ggplot(heartdata) +
   geom_bar(aes(ChestPainType, fill=HeartDisease)) + ggtitle("Chestpaintype vs heart disease")   + 
@@ -143,5 +146,104 @@ ggplot(heartdata) +
 In the barplot above, Asymptomatic pain (ASY) is the most frequent chest pain type for people with heart disease.
 
 
+\newpage
+### Effect of chest pain type against the resting blood pressure
+```{r density plot, fig.cap="Density plot Resting blood pressue against chest pain"}
+ggplot(heartdata, aes(x=RestingBP, group=ChestPainType, colour=ChestPainType)) + 
+  geom_density()
+```
+The pain type doesn't seem to have an effect on the blood pressure of the individual. 
 
+
+### influence of Electrocardiogram (ECG) against heart disease
+
+ECG type:
+
+| Code | Explanation |
+|---|---|
+| Normal | Normal | 
+| ST | Having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV). | 
+| LVH | Showing probable or definite left ventricular hypertrophy by Estes' criteria. |
+
+
+
+Electrocardiogram (ECG or EKG) is a straightforward test that records and detects your heart's electrical activity. An ECG shows how fast your heart is beating and shows if your rhythm of your heartbeats is steady or irregular. But also indicates the strength and timing of the electical impulses passing through each part of your hart. 
+Source: [Electrocardiogram](https://www.nhlbi.nih.gov/health/heart-tests)
+
+
+\newpage
+```{r Electrocardiogram, echo=TRUE, fig.cap="Frequency different ECG types against heart disease"}
+
+ggplot(heartdata) +
+  geom_bar(aes(RestingECG, fill=HeartDisease)) + ggtitle("resting electrocardiogram vs heart disease")   + 
+  ylab("Frequency")
+
+
+
+freq_RestingECG <- table(heartdata$RestingECG)
+
+```
+
+The frequency for a normal (`r freq_RestingECG[2]`) electrical activity is exceptionally high in comparison with ST (`r freq_RestingECG[3]`)  and  LVH (`r freq_RestingECG[1]`). The ratio between people with heart disease and without heart disease are almost even with a normal electrical activity. The restingECG column probably won't be the deciding factor in predicting people with heart disease. This needs more investigation with principal component analysis in order to determine the value of the restingECG column and other columns as well. 
+
+
+
+
+\newpage
+### Comparison between MaxHR against age grouped by sex
+```{r}
+ggplot(heartdata, aes(Age, MaxHR, group=Sex, colour = Sex)) + 
+  geom_point(alpha=0.10) + geom_smooth(se=F) + ggtitle("Comparison between MaxHR and age grouped by sex")
+
+count_table <- heartdata %>% group_by(Sex) %>% 
+      filter(Age > 55) %>%
+      count(Sex)
+```
+In the graph above goes MaxHR down when people become older. Only the line goes up again after the age of 55 for females. This is possible because of the lack of data for females after the age of 55. Females contain `r count_table[[2]][1]` amount of data and for males this is `r count_table[[2]][2]` data points. 
+The ratio is not balanced. To analyse this a density plot is made for the difference in datapoints per sex.  
+
+
+
+
+
+\newpage
+###
+```{r}
+ggplot(heartdata) + 
+  geom_density(aes(Age, colour=Sex, fill=Sex), alpha=0.05) + 
+  ggtitle("Density plot comparing sexes")
+```
+The above graph shows that there is not much difference in age comparing male and female.
+
+
+
+
+
+\newpage
+###
+```{r Principal component analysis}
+
+
+```
+
+
+RestingBP en Cholesterol toch meenemen naar weka. 
+
+### Cleaning
+```{r}
+
+#Weka columns age, sex, chestpaintype, cholesterol, fastingBS, MaxHR, ExerciseAngina, ST_slope, HeartDisease (Maakt niet zo veel uit minder dan 1% beter)
+
+heartdata$Cholesterol[heartdata$Cholesterol == 0] <- NA
+
+heartdata$RestingBP[heartdata$RestingBP == 0] <- NA
+
+# replace NA's for every column
+for(i in 1:ncol(heartdata)){
+  heartdata[is.na(heartdata[,i]), i] <- mean(heartdata[,i], na.rm = TRUE)
+}
+
+write.csv(heartdata, "data/clean_heart.csv", sep=",", row.names = FALSE)
+
+```
 
