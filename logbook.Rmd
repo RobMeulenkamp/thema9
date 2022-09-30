@@ -15,6 +15,7 @@ library(scales)
 library(reshape2)
 library(factoextra)
 library(dplyr)
+library(tidyr)
 library(tibble)
 library(ggpubr)
 library(pROC)
@@ -56,8 +57,37 @@ heartdata$FastingBS <- as.logical(heartdata$FastingBS)
 
 # Changes Y/N to Boolean
 heartdata$ExerciseAngina <- heartdata$ExerciseAngina == "Y"
+
+
+# Function split column into new column and make it True or False
+# For example if the patient has the condition yes or no
+# x = value in column you want to split
+# y = column the value belongs to
+# dataframe = dataframe the desired value is stored 
+# Returns the desired column
+splitColumn <- function(x, y, dataframe){
+  dataframe[,x] <- NA 
+  dataframe[,x][which(dataframe[,y] == x)] <- x
+  dataframe[,x][is.na(dataframe[,x])] <- FALSE
+  dataframe[,x][dataframe[,x] == x] <- TRUE
+  return(dataframe[,x])
+  
+}
+
+value_targets <- c("ATA", "ASY", "NAP", "TA")
+
+for (column in value_targets){
+    new_column <- splitColumn(column, "ChestPainType", heartdata)
+    frame <- as.data.frame(as.logical(new_column))
+    colnames(frame) <- column
+    heartdata <- add_column(heartdata, frame)
+
+}
+
+
 ```
 
+Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis.
 
 ## Codebook
 
@@ -87,7 +117,7 @@ kable(tab, caption = "5 num of numerical valies") %>%
 
 ## Visualisations 
 ### Histogram Age vs Heart disease
-```{r fig.cap="Histogram of age against frequency for HD"}
+```{r fig.cap="Histogram of age against frequency for HD", fig.align="center"}
 ggplot(heartdata, aes(Age, fill=HeartDisease)) +
   geom_histogram(bins=10) +
   ylab("Frequency") +
@@ -100,7 +130,7 @@ This needs more investigation.
 
 \newpage
 ### Age linked to heartdisease
-```{r Age related to heartdisease, fig.cap="Percentage of patients impacted by HD"}
+```{r Age related to heartdisease, fig.cap="Percentage of patients impacted by HD", fig.align="center"}
 ggplot(heartdata) + 
   geom_smooth(aes(Age, HeartDisease * 100), method="loess", formula = "y ~ x", color=hue_pal()(1)) + 
   ylab("Heart Disease (%)") + 
@@ -120,7 +150,7 @@ Source: [Heart Health and Aging](https://www.nia.nih.gov/health/heart-health-and
 \newpage
 ### Ratio between males and females
 
-```{r Ratio male - female, fig.cap="Ratio Male - Female"}
+```{r Ratio male - female, fig.cap="Ratio Male - Female", fig.align="center"}
 ggplot(heartdata) +
   geom_bar(aes(Sex, fill=HeartDisease)) +
   labs(title="Man vs Women having heartdisease") +
@@ -134,7 +164,7 @@ The most noticeable is that males have a higher proportion to have heartdisease 
 
 ### Chest pain against heart disease 
 
-```{r Different chest pain types against heart disease, fig.cap="proportions between chest pain with or without heart disease"}
+```{r Different chest pain types against heart disease, fig.cap="proportions between chest pain with or without heart disease", fig.align="center"}
 
 ggplot(heartdata) +
   geom_bar(aes(ChestPainType, fill=HeartDisease)) + ggtitle("Chestpaintype vs heart disease")   + 
@@ -148,7 +178,7 @@ In the barplot above, Asymptomatic pain (ASY) is the most frequent chest pain ty
 
 \newpage
 ### Effect of chest pain type against the resting blood pressure
-```{r density plot, fig.cap="Density plot Resting blood pressue against chest pain"}
+```{r density plot, fig.align="center", fig.cap="Density plot Resting blood pressue against chest pain"}
 ggplot(heartdata, aes(x=RestingBP, group=ChestPainType, colour=ChestPainType)) + 
   geom_density()
 ```
@@ -172,7 +202,7 @@ Source: [Electrocardiogram](https://www.nhlbi.nih.gov/health/heart-tests)
 
 
 \newpage
-```{r Electrocardiogram, echo=TRUE, fig.cap="Frequency different ECG types against heart disease"}
+```{r Electrocardiogram, fig.align="center" fig.cap="Frequency different ECG types against heart disease"}
 
 ggplot(heartdata) +
   geom_bar(aes(RestingECG, fill=HeartDisease)) + ggtitle("resting electrocardiogram vs heart disease")   + 
@@ -191,7 +221,7 @@ The frequency for a normal (`r freq_RestingECG[2]`) electrical activity is excep
 
 \newpage
 ### Comparison between MaxHR against age grouped by sex
-```{r}
+```{r MaxHR against age , fig.align="center", fig.cap="Maximum heart rate against age and grouped by sex"}
 ggplot(heartdata, aes(Age, MaxHR, group=Sex, colour = Sex)) + 
   geom_point(alpha=0.10) + geom_smooth(se=F) + ggtitle("Comparison between MaxHR and age grouped by sex")
 
@@ -207,8 +237,8 @@ The ratio is not balanced. To analyse this a density plot is made for the differ
 
 
 \newpage
-###
-```{r}
+### Density of age grouped by sex
+```{r density plot sex, fig.align="center", fig.cap="Amount of datapoints per age grouped by sex"}
 ggplot(heartdata) + 
   geom_density(aes(Age, colour=Sex, fill=Sex), alpha=0.05) + 
   ggtitle("Density plot comparing sexes")
@@ -220,14 +250,24 @@ The above graph shows that there is not much difference in age comparing male an
 
 
 \newpage
-###
-```{r Principal component analysis}
+### Principal component analysis
+```{r Principal component analysis, fig.align="center" fig.cap="PCA variable plot"}
 
+
+heartdataPca = heartdata[, c(1,4,5,6,8, 13:16)]
+res.pca <- prcomp(heartdataPca, scale = TRUE)
+
+
+fviz_pca_var(res.pca,
+             col.var = "contrib", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE 
+             )
 
 ```
+Using the above lying PCA graphs it seems that asymptomic pain is the biggest contributor in the diagnosis of heartdisease in this dataset. This makes it hard to predict HD as asymptomic patients have no (visible) symptoms. The other pain categories do not seem to have a direct relation with the presence of HD. 
+So far we can expect that age is the best variable in predicting HD as the percentage goes from around 25% at age ~30 to 75% at age ~65. 
 
-
-RestingBP en Cholesterol toch meenemen naar weka. 
 
 ### Cleaning
 ```{r}
@@ -246,4 +286,7 @@ for(i in 1:ncol(heartdata)){
 write.csv(heartdata, "data/clean_heart.csv", sep=",", row.names = FALSE)
 
 ```
+
+
+
 
