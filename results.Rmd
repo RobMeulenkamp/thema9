@@ -1,0 +1,153 @@
+---
+title: "results en conclusion & discussion"
+author: "Rob Meulenkamp"
+date: '2022-10-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Results
+
+```{r load data, echo=FALSE}
+heartdata <- read.csv("data/heart.csv")
+
+
+chol_count <- heartdata %>%  
+      filter(Cholesterol == 0) %>%
+      count()
+
+```
+
+
+## Cleaning
+Multiple columns were cleaned up. The different chest pain type were split into four extra columns with values True or False. For the analysis of the principal component the column ChestPainType was split in four different columns. The Cholesterol column had many zeros (`chol_count$n`). The cholesterol value was perhaps incorrectly recorded or read.
+There was chosen to replace the zeros with the median because the mean was possibly sensitive for outliers.  
+
+
+\pagebreak
+## Heart disease
+
+```{r}
+ggplot(heartdata) +
+   geom_bar(aes(HeartDisease, fill=HeartDisease)) + 
+   theme(legend.position="none") +
+  labs(title = "Ratio diseased vs undiseased")  + 
+  ylab("Frequency") +
+  xlab("Has heart disease")
+```
+The ratio between patients with or without the heart disease is almost even. Patients with heart disease contains 55% of the data and patients without heart disease has 45%. This is a slight difference but still tolerable.
+
+
+\pagebreak
+## Age 
+
+```{r}
+ggplot(heartdata, aes(Age, MaxHR, group=Sex, colour = Sex)) + 
+  geom_point(alpha=0.10) + geom_smooth(se=F) + ggtitle("Comparison between MaxHR and age grouped by sex")
+```
+
+
+```{r}
+ggplot(heartdata, aes(Age, fill=HeartDisease)) +
+  geom_histogram(bins=10) +
+  ylab("Frequency") +
+  ggtitle("Frequency heart disease for age")
+
+```
+
+\pagebreak
+## Sex
+
+```{r}
+ggplot(heartdata) +
+  geom_bar(aes(Sex, fill=HeartDisease)) +
+  labs(title="Man vs Women having heartdisease") +
+  ylab("frequency")
+```
+
+
+```{r}
+ggplot(heartdata) + 
+  geom_density(aes(Age, colour=Sex, fill=Sex), alpha=0.05) + 
+  ggtitle("Density plot comparing sexes")
+```
+
+
+
+```{r}
+ggplot(heartdata) + geom_bar(aes(ExerciseAngina, fill=HeartDisease))
+
+```
+
+```{r}
+ggplot(heartdata) + geom_histogram(aes(MaxHR), fill="#00AFBB", bins=20)
+ggplot(heartdata) + geom_histogram(aes(Cholesterol), fill="darkgreen")
+
+```
+
+
+
+
+```{r}
+ggplot(heartdata) + geom_bar(aes(ST_Slope, fill=HeartDisease))
+
+```
+
+
+ECG type:
+
+| Code | Explanation |
+|---|---|
+| Normal | Normal | 
+| ST | Having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV). | 
+| LVH | Showing probable or definite left ventricular hypertrophy by Estes' criteria. |
+
+
+
+Electrocardiogram (ECG or EKG) is a straightforward test that records and detects your heart's electrical activity. An ECG shows how fast your heart is beating and shows if your rhythm of your heartbeats is steady or irregular. But also indicates the strength and timing of the electical impulses passing through each part of your hart. 
+Source: [Electrocardiogram](https://www.nhlbi.nih.gov/health/heart-tests)
+
+
+\newpage
+```{r Electrocardiogram, fig.align="center" fig.cap="Frequency different ECG types against heart disease"}
+
+ggplot(heartdata) +
+  geom_bar(aes(RestingECG, fill=HeartDisease)) + ggtitle("resting electrocardiogram vs heart disease")   + 
+  ylab("Frequency")
+
+
+
+freq_RestingECG <- table(heartdata$RestingECG)
+
+
+
+```
+
+
+```{r}
+heartdataPca <- heartdata[, c(1,4,5,6,8, 13:16)]
+res.pca <- prcomp(heartdataPca, scale = TRUE)
+
+
+fviz_pca_var(res.pca,
+             col.var = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE 
+             )
+
+# Contributions of variables to PC1
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+
+# Contributions of variables to PC2
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
+```
+
+
+
+# Discussion
+
+
+# Conclusion
