@@ -16,6 +16,7 @@ library(reshape2)
 library(factoextra)
 library(dplyr)
 library(tidyr)
+library(naniar)
 library(tibble)
 library(ggpubr)
 library(pROC)
@@ -85,9 +86,16 @@ for (column in value_targets){
 }
 
 
+
+
+
 ```
 
-Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis.
+
+```{r Missing values}
+colSums(is.na(heartdata))
+```
+Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis. The data set don't have missing values. 
 
 ## Codebook
 
@@ -100,6 +108,9 @@ codebook <- as_tibble(code_frame)
 kable(codebook, caption = "Codebook") %>%
   kable_styling(latex_options = c("hold_position"))
 ```
+
+Information about the meaning of every attribute can be found in the following link. 
+(Attribute information)[https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download]
 
 
 
@@ -254,33 +265,36 @@ The above graph shows that there is not much difference in age comparing male an
 ```{r Principal component analysis, fig.align="center" fig.cap="PCA variable plot"}
 
 
-heartdataPca = heartdata[, c(1,4,5,6,8, 13:16)]
+heartdataPca <- heartdata[, c(1,4,5,6,8, 9, 13:16)]
 res.pca <- prcomp(heartdataPca, scale = TRUE)
 
 
 fviz_pca_var(res.pca,
-             col.var = "contrib", 
+             col.var = "cos2", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE 
              )
 
+
+# Contributions of variables to PC1
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+
+# Contributions of variables to PC2
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
 ```
-Using the above lying PCA graphs it seems that asymptomic pain is the biggest contributor in the diagnosis of heartdisease in this dataset. This makes it hard to predict HD as asymptomic patients have no (visible) symptoms. The other pain categories do not seem to have a direct relation with the presence of HD. 
-So far we can expect that age is the best variable in predicting HD as the percentage goes from around 25% at age ~30 to 75% at age ~65. 
+In the circle diagram and in the contribution diagram the asymptomatic pain and non-Anginal pain has the biggest contribution for a positive or negative diagnosing the heart disease. One downside is that it's hard to predict for patients who don't have visible symptoms. Two other important contributors are MaxHR and Age. These two variables are important because it could be measured for every patient thus are viable. Last, the column ExerciseAngina has an important contribution. If it's possible to diagnose the patient with exercise angina this column becomes vital for predicting people with heart disease.  
+
 
 
 ### Cleaning
 ```{r}
 
-#Weka columns age, sex, chestpaintype, cholesterol, fastingBS, MaxHR, ExerciseAngina, ST_slope, HeartDisease (Maakt niet zo veel uit minder dan 1% beter)
-
 heartdata$Cholesterol[heartdata$Cholesterol == 0] <- NA
+heartdata$ChestPainType <- NULL
 
-heartdata$RestingBP[heartdata$RestingBP == 0] <- NA
-
-# replace NA's for every column
+# replace NA's with the median for every column
 for(i in 1:ncol(heartdata)){
-  heartdata[is.na(heartdata[,i]), i] <- mean(heartdata[,i], na.rm = TRUE)
+  heartdata[is.na(heartdata[,i]), i] <- median(heartdata[,i], na.rm = TRUE)
 }
 
 write.csv(heartdata, "data/clean_heart.csv", sep=",", row.names = FALSE)
