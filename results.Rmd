@@ -2,13 +2,28 @@
 title: "results en conclusion & discussion"
 author: "Rob Meulenkamp"
 date: '2022-10-03'
-output: html_document
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(kableExtra)
+library(scales)
+library(reshape2)
+library(factoextra)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggpubr)
+library(pROC)
 ```
 
+\newpage
 # Results
 
 ```{r load data, echo=FALSE}
@@ -26,11 +41,50 @@ chol_count <- heartdata %>%
 Multiple columns were cleaned up. The different chest pain type were split into four extra columns with values True or False. For the analysis of the principal component the column ChestPainType was split in four different columns. The Cholesterol column had many zeros (`chol_count$n`). The cholesterol value was perhaps incorrectly recorded or read.
 There was chosen to replace the zeros with the median because the mean was possibly sensitive for outliers.  
 
+```{r Cleaning, echo=FALSE}
+
+heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
+heartdata$FastingBS <- as.logical(heartdata$FastingBS)
+
+
+
+# Changes Y/N to Boolean
+heartdata$ExerciseAngina <- heartdata$ExerciseAngina == "Y"
+
+
+# Function split column into new column and make it True or False
+# For example if the patient has the condition yes or no
+# x = value in column you want to split
+# y = column the value belongs to
+# dataframe = dataframe the desired value is stored 
+# Returns the desired column
+splitColumn <- function(x, y, dataframe){
+  dataframe[,x] <- NA 
+  dataframe[,x][which(dataframe[,y] == x)] <- x
+  dataframe[,x][is.na(dataframe[,x])] <- FALSE
+  dataframe[,x][dataframe[,x] == x] <- TRUE
+  return(dataframe[,x])
+  
+}
+
+value_targets <- c("ATA", "ASY", "NAP", "TA")
+
+for (column in value_targets){
+    new_column <- splitColumn(column, "ChestPainType", heartdata)
+    frame <- as.data.frame(as.logical(new_column))
+    colnames(frame) <- column
+    heartdata <- add_column(heartdata, frame)
+
+}
+
+
+```
+
 
 \pagebreak
 ## Heart disease
 
-```{r}
+```{r hd-count, echo=FALSE, fig.cap="Ratio diseased against undiseased"}
 ggplot(heartdata) +
    geom_bar(aes(HeartDisease, fill=HeartDisease)) + 
    theme(legend.position="none") +
@@ -44,58 +98,95 @@ The ratio between patients with or without the heart disease is almost even. Pat
 \pagebreak
 ## Age 
 
-```{r}
-ggplot(heartdata, aes(Age, MaxHR, group=Sex, colour = Sex)) + 
-  geom_point(alpha=0.10) + geom_smooth(se=F) + ggtitle("Comparison between MaxHR and age grouped by sex")
-```
 
-
-```{r}
+```{r Freq heart disease, echo=FALSE, fig.cap="Frequency for every age group"}
 ggplot(heartdata, aes(Age, fill=HeartDisease)) +
   geom_histogram(bins=10) +
   ylab("Frequency") +
   ggtitle("Frequency heart disease for age")
 
 ```
+The histogram shows seemly a normal distribution in age. It's observable that frequency of patients with HD is at the highest around the age of 50 till 65 years. After the year of 65 the frequency shrink again.
+This needs more investigation in order to find a relation/correlation between age and people who are diagnosed with HD.
+
+
+```{r hrage, echo=FALSE, fig.cap="Relation between age and heart disease"}
+ggplot(heartdata) + 
+  geom_smooth(aes(Age, HeartDisease * 100), method="loess", formula = "y ~ x", color=hue_pal()(1)) + 
+  ylab("Heart Disease (%)") + 
+  xlab("Age (years)") +
+  ggtitle("Percentage of patients affected by heart disease") + 
+  ylim(c(0, 100)) +
+  xlim(c(25, 80))
+```
+Figure \@ref(fig:hrage) displays the correlation between age and patients with HD. The trend shows when age increase also the percentage of people with HD rise as well.  
+Patients who are diagnosed with HD at the age of 40 is around 35% although patients at 65 years have a 75% HD diagnosis. Last, it's noticeable that percentage people with HD decrease after the age of 65.
+
+
+
 
 \pagebreak
 ## Sex
 
-```{r}
+```{r Freq males/females, echo=FALSE, fig.cap="Frequency patients with heart disease grouped by sex"}
 ggplot(heartdata) +
   geom_bar(aes(Sex, fill=HeartDisease)) +
   labs(title="Man vs Women having heartdisease") +
   ylab("frequency")
+
+count_table_sex <- heartdata %>% 
+      count(Sex) %>% 
+      mutate(prop = prop.table(n))
+
 ```
+In the figure above the data is more skewed towards males instead of the females. The males ratio (`round(count_table_sex$prop[2] * 100, 2)`%) is tremendous higher in comparison with females (`round(count_table_sex$prop[1] * 100, 2)`%). The frequency of females with HD are lower in contrast with females without HD. For Males this is the other way around, the frequency for males with HD are higher in contrast with males without HD.
 
 
-```{r}
+
+```{r density-age, echo=FALSE, fig.cap="Density between females and males"}
 ggplot(heartdata) + 
   geom_density(aes(Age, colour=Sex, fill=Sex), alpha=0.05) + 
   ggtitle("Density plot comparing sexes")
 ```
-
-
-
-```{r}
-ggplot(heartdata) + geom_bar(aes(ExerciseAngina, fill=HeartDisease))
-
-```
-
-```{r}
-ggplot(heartdata) + geom_histogram(aes(MaxHR), fill="#00AFBB", bins=20)
-ggplot(heartdata) + geom_histogram(aes(Cholesterol), fill="darkgreen")
-
-```
+Figure \@ref(fig:density-age) indicates that males and females have almost the same amount of age groups.
+There's a difference at the age of 55 for males. Males have a larger representation after 55 years of age. Females contain a larger representation before the age of 55. 
 
 
 
 
-```{r}
-ggplot(heartdata) + geom_bar(aes(ST_Slope, fill=HeartDisease))
+```{r excercise-ang, echo=FALSE, fig.cap="Frequenct having exercise angina"}
+ggplot(heartdata) + geom_bar(aes(ExerciseAngina, fill=HeartDisease))+
+  ylab("frequency") +
+  ggtitle("Frequency plot having exercise angina")
 
 ```
+In figure \@ref(fig:excercise-ang) it's possible to see that a patient with exercise angina has an increase change of diagnosed positive HD compared to with someone who doesn't have exercise angina. 
 
+
+
+
+```{r hist-chol, echo=FALSE, fig.cap="Frequency cholesterol levels"}
+
+ggplot(heartdata) + geom_histogram(aes(Cholesterol), fill="darkgreen")+
+  ylab("frequency") +
+  ggtitle("Frequency plot displaying cholesterol levels")
+
+```
+Figure \@ref(fig:hist-chol) shows that cholesterol contains a high frequency with 0 values (`r sum(heartdata$Cholesterol == 0)`). At the end of the histogram there are some higher cholesterol values.
+
+
+
+
+
+```{r st-slope, echo=FALSE, fig.cap=""}
+ggplot(heartdata) + geom_bar(aes(ST_Slope, fill=HeartDisease)) +
+  ylab("frequency") +
+  ggtitle("Contribution ST Slope to people with or without heart disease")
+
+```
+Figure \@ref(fig:st-slope) displays that patients with UP ST slope depression considerably lower the change of HD. For Flat is this the opposite. Patients with Flat ST slope have a higher change in developing HD. The last column Down has a low frequency of data points in comparison with the other two columns Flat and Up. 
+
+\newpage
 
 ECG type:
 
@@ -111,8 +202,7 @@ Electrocardiogram (ECG or EKG) is a straightforward test that records and detect
 Source: [Electrocardiogram](https://www.nhlbi.nih.gov/health/heart-tests)
 
 
-\newpage
-```{r Electrocardiogram, fig.align="center" fig.cap="Frequency different ECG types against heart disease"}
+```{r Electrocardiogram, echo=FALSE, fig.align="center", fig.cap="Frequency different ECG types against heart disease"}
 
 ggplot(heartdata) +
   geom_bar(aes(RestingECG, fill=HeartDisease)) + ggtitle("resting electrocardiogram vs heart disease")   + 
@@ -125,10 +215,12 @@ freq_RestingECG <- table(heartdata$RestingECG)
 
 
 ```
+The frequency for a normal (`r freq_RestingECG[2]`) electrical activity is exceptionally high in comparison with ST (`r freq_RestingECG[3]`)  and  LVH (`r freq_RestingECG[1]`). The ratio between people with HD and without HD are almost even with a normal electrical activity.  
 
-
-```{r}
-heartdataPca <- heartdata[, c(1,4,5,6,8, 13:16)]
+\newpage
+## PCA plotting
+```{r pca-var, echo=FALSE, fig.cap="PCA diagram with contribution plot"}
+heartdataPca <- heartdata[, c(1,4,5,6,8, 9, 13:16)]
 res.pca <- prcomp(heartdataPca, scale = TRUE)
 
 
@@ -138,16 +230,43 @@ fviz_pca_var(res.pca,
              repel = TRUE 
              )
 
+
+```
+
+
+```{r contri-pca, echo= FALSE, fig.cap="Contribution plot"}
 # Contributions of variables to PC1
 fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
 
 # Contributions of variables to PC2
 fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
 ```
+In the circle diagram and in the contribution diagram the asymptomatic pain and non-Anginal pain has the biggest contribution for a positive or negative diagnosing the heart disease. One downside is that it's hard to predict for patients who don't have visible symptoms. Three other important contributors are MaxHR, Age, and ExerciseAngina. These three variables are important because it could be measured for every patient thus are viable. 
 
+
+
+\newpage
+# Conclusion
+The cholesterol column contains a lot of zero-value patients. The cholesterol value was perhaps incorrectly recorded or read. The zero-values are replaced with the column median because the mean
+is possibly more sensitive to outliers. fortunate, the ratio between patients with or without heart disease are almost even (0.45 to 0.55). Asymptomatic pain is the main contributor in diagnosing patients with heart disease. Unfortunate, asymptomatic pain isn't usable because isn't measurable by patients.   
+If asymptomatic pain is left out there might be a reliable prediction for diagnosing patients with the correct algorithm. Asymptomatic pain is the most important contributor in diagnosing patients and if you left them out, the accuracy of the prediction would probably go down for this data set.      
+Moreover the data is more favored towards males due to it's more skewed towards males. 
+Males has a very large percentage(`round(count_table_sex$prop[2] * 100, 2)`%) in comparison with females(`round(count_table_sex$prop[1] * 100, 2)`%). Other three important variables in diagnosing 
+heart disease are maximum heart rate, age, and exercise angina. These variables could be useful in creating a realistic algorithm for diagnosing patients with heart disease.  
+  
+For future research, it could increase the quality of the data to add more female data to the data set.
+The decrease of patients with heart disease after the age of 65 perhaps be interpreted by the conviction that patients who are older then 65 die because of the heart disease.  
+ 
+The cleaned data set appears to be good enough. Cholesterol 0-values are replaced with the median of the cholesterol column due to missing measurements. The same could be done for the variable oldpeak because it has the problem as well. In the discussion of the data set it's explained that the zero means there are no abnormalities.
+(Discussion dataset)[https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction/discussion?resource=download] 
 
 
 # Discussion
+Age, maximum heart rate, and exercise angina are a proper indicator for diagnosing the heart disease.
+This is to be seen in the PCA plots \@ref(fig:pca-var). In the bar chart, the variables rise above the ten percentage (red line). Attendance of asymptomatic pain is a large contributor for diagnosing patients with heart disease \@ref(fig:chestpain-outcome). 79 percent of the positive diagnosis of heart disease are due to asymptomatic pain. Chest pain type NAP has an reverse effect. Figure \@ref(fig:pca-var) affirms that NAP has a large contribution for a negative diagnosis.      
+ATA has relatively low (13.9%) positive rate of heart disease, this also presents in the PCA plot (figure \@ref(fig:pca-var)). ATA has relative smaller overall contribution. Having the condition UP ST slope depression decrease the chance of heart disease significantly. It appears to be that non-numerical variables have a higher contribution than numerical variables.
+
+Overall it's possible to predict heart disease with decent accuract on this data set. The only problem is that it's not representable on real-world data. There are some difference between the used variables adn the variables used in the real-world. 
 
 
-# Conclusion
+
