@@ -10,6 +10,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
+library(pander)
 library(kableExtra)
 library(scales)
 library(reshape2)
@@ -48,7 +49,7 @@ heartdata <- read.csv("data/heart.csv")
 ```
 
 ## Parsing data
-
+Parsing data to change the type of variables. If someone is diagnosed it's either 0 or 1. This can be confusing sometimes. It's easier to keep track with True and False values. 
 ```{r Cleaning}
 
 heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
@@ -85,34 +86,46 @@ for (column in value_targets){
 
 }
 
-
-
+heartdata$ChestPainType <- NULL
 
 
 ```
+Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis.
 
 
+\pagebreak
+
+## Codebook
+The data set doesn't include a codebook with annotated header or columns. The codebook consist of the column name, full name, and the type of the data. This codebook is handmade. 
+```{r Codebook}
+
+codebook <- read.csv("data/codebook.csv")
+pander(codebook, style = "rmarkdown", caption ="Overview created codebook")
+
+```
+Most of the attributes are categorical instead of numerical data.
+Extra information about every attribute can be found in the following link. 
+(Attribute information)[https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download]
+
+\pagebreak
+The most important is that values are read correctly and has to be examined. 
+```{r}
+
+str(heartdata)
+
+```
+fortunately it looks like every column have been read correctly. 
+
+
+
+
+
+\pagebreak
+Inspecting the different columns if they contain Na's.This is done to get a better understanding about the data set. 
 ```{r Missing values}
 colSums(is.na(heartdata))
 ```
-Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis. The data set don't have missing values. 
-
-## Codebook
-
-```{r Codebook}
-code_frame <- data.frame("attribute" = colnames(heartdata),
-                 "type" = sapply(heartdata, typeof), 
-                 "class" = sapply(heartdata, class),
-                 row.names = NULL)
-codebook <- as_tibble(code_frame)
-kable(codebook, caption = "Codebook") %>%
-  kable_styling(latex_options = c("hold_position"))
-```
-
-Information about the meaning of every attribute can be found in the following link. 
-(Attribute information)[https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download]
-
-
+The data set don't have missing values. Now it's time to inspect the data with a summary.
 
 ## Summary
 
@@ -123,6 +136,7 @@ rownames(tab) <- c("Min", "1st. Qu", "Median", "Mean", "3rd. Qu", "Max")
 kable(tab, caption = "5 num of numerical valies") %>% 
   kable_styling(latex_options="scale_down")
 ```
+The first thing that stands out is the 0 value as minimum value in the column RestingBP. If a person has a resting blood pressure of 0 it means that the person is dead. Column cholesterol has 0 values too as minimum value. A person has mostly of the time cholesterol level higher than 0. This needs to be investigate carefully when the data is cleaned before using the machine learning algorithm.    
 
 \newpage
 
@@ -287,17 +301,20 @@ In the circle diagram and in the contribution diagram the asymptomatic pain and 
 
 
 ### Cleaning
+Cholesterol 0-values are replaced with the median of the cholesterol column due to missing measurements.
+Median is less sensitive to outliers in comparison with the mean. 
 ```{r}
 
 heartdata$Cholesterol[heartdata$Cholesterol == 0] <- NA
-heartdata$ChestPainType <- NULL
+
 
 # replace NA's with the median for every column
 for(i in 1:ncol(heartdata)){
   heartdata[is.na(heartdata[,i]), i] <- median(heartdata[,i], na.rm = TRUE)
 }
 
-write.csv(heartdata, "data/clean_heart.csv", sep=",", row.names = FALSE)
+heartdata <- heartdata %>% relocate(HeartDisease, .after = last_col())
+write.csv(heartdata, "data/clean_heart.csv", row.names = FALSE)
 
 ```
 

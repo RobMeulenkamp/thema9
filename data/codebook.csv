@@ -1,0 +1,16 @@
+﻿Column Name,Full Name,Type
+Age,Age,int
+Sex,Sex,chr
+RestingBP,Resting blood pressure,int
+Cholesterol,Cholesterol,num
+FastingBS,Fasting blood sugar,logi
+RestingECG,Resting electrocardiogram ,chr
+MaxHR,Maximum heart rate,int
+ExerciseAngina,Exercise-induces angina,logi
+Oldpeak,ST(numeric values measured in depressiong),num
+ST_Slope,The slope of the peak exercise ST segment,chr
+HeartDisease,Heart disease,logi
+ATA,Atypical Angina pain,logi
+ASY,Asymptomatic pain,logi
+NAP,Non-Anginal pain,logi
+TA,Typical angina pain,logi
