@@ -1,0 +1,27 @@
+Tester:     weka.experiment.PairedCorrectedTTester -G 4,5,6 -D 1 -R 2 -S 0.05 -V -result-matrix "weka.experiment.ResultMatrixPlainText -mean-prec 2 -stddev-prec 2 -col-name-width 0 -row-name-width 25 -mean-width 0 -stddev-width 0 -sig-width 0 -count-width 5 -show-stddev -print-col-names -print-row-names -enum-col-names"
+Analysing:  Percent_correct
+Datasets:   1
+Resultsets: 9
+Confidence: 0.05 (two tailed)
+Sorted by:  -
+Date:       13/10/2022, 13:55
+
+
+Dataset                   (1) rules.ZeroR '' | (2) trees.Rando (3) trees.J48 ' (4) bayes.Naive (5) meta.AdaBoo (6) functions.S (7) meta.Vote ' (8) meta.Stacki (9) meta.Baggin
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+clean_heart              (100)   55.34(0.20) |   86.49(3.45) v   85.48(3.77) v   84.47(3.76) v   85.78(3.32) v   85.75(3.60) v   86.62(3.44) v   86.30(3.44) v   85.40(3.93) v
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                     (v/ /*) |         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)
+
+
+Key:
+(1) rules.ZeroR '' 48055541465867954
+(2) trees.RandomForest '-P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1' 1116839470751428698
+(3) trees.J48 '-C 0.25 -M 2' -217733168393644444
+(4) bayes.NaiveBayes '' 5995231201785697655
+(5) meta.AdaBoostM1 '-P 100 -S 1 -I 10 -W trees.DecisionStump' -1178107808933117974
+(6) functions.SMO '-C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"functions.supportVector.PolyKernel -E 1.0 -C 250007\" -calibrator \"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\"' -6585883636378691736
+(7) meta.Vote '-S 1 -B \"trees.J48 -C 0.25 -M 2\" -B \"trees.RandomForest -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1\" -B \"bayes.NaiveBayes \" -B \"meta.AdaBoostM1 -P 100 -S 1 -I 10 -W trees.DecisionStump\" -B \"functions.SMO -C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \\\"functions.supportVector.PolyKernel -E 1.0 -C 250007\\\" -calibrator \\\"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\\\"\" -R AVG' -637891196294399624
+(8) meta.Stacking '-X 10 -M \"meta.AdaBoostM1 -P 100 -S 1 -I 10 -W trees.DecisionStump\" -S 1 -num-slots 1 -B \"meta.AdaBoostM1 -P 100 -S 1 -I 10 -W trees.DecisionStump\" -B \"bayes.NaiveBayes \" -B \"functions.SMO -C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \\\"functions.supportVector.PolyKernel -E 1.0 -C 250007\\\" -calibrator \\\"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\\\"\" -B \"trees.J48 -C 0.25 -M 2\" -B \"trees.RandomForest -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1\"' 5134738557155845452
+(9) meta.Bagging '-P 100 -S 1 -num-slots 1 -I 10 -W trees.J48 -- -C 0.25 -M 2' -115879962237199703
+
