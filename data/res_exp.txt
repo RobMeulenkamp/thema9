@@ -1,0 +1,27 @@
+Tester:     weka.experiment.PairedCorrectedTTester -G 4,5,6 -D 1 -R 2 -S 0.05 -V -result-matrix "weka.experiment.ResultMatrixPlainText -mean-prec 2 -stddev-prec 2 -col-name-width 0 -row-name-width 25 -mean-width 2 -stddev-width 2 -sig-width 1 -count-width 5 -show-stddev -print-col-names -print-row-names -enum-col-names"
+Analysing:  Percent_correct
+Datasets:   1
+Resultsets: 9
+Confidence: 0.05 (two tailed)
+Sorted by:  -
+Date:       12/10/2022, 12:04
+
+
+Dataset                   (1) rules.ZeroR '' | (2) rules.OneR  (3) trees.J48 ' (4) trees.Rando (5) meta.AdaBoo (6) lazy.IBk '- (7) functions.S (8) functions.S (9) bayes.Naive
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+clean_heart              (100)   55.34(0.20) |   81.37(3.43) v   85.48(3.77) v   86.49(3.45) v   85.78(3.32) v   80.64(3.77) v   85.75(3.60) v   85.95(3.59) v   84.47(3.76) v
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                     (v/ /*) |         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)         (1/0/0)
+
+
+Key:
+(1) rules.ZeroR '' 48055541465867954
+(2) rules.OneR '-B 6' -3459427003147861443
+(3) trees.J48 '-C 0.25 -M 2' -217733168393644444
+(4) trees.RandomForest '-P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1' 1116839470751428698
+(5) meta.AdaBoostM1 '-P 100 -S 1 -I 10 -W trees.DecisionStump' -1178107808933117974
+(6) lazy.IBk '-K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -3080186098777067172
+(7) functions.SMO '-C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"functions.supportVector.PolyKernel -E 1.0 -C 250007\" -calibrator \"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\"' -6585883636378691736
+(8) functions.SGD '-F 0 -L 0.01 -R 1.0E-4 -E 500 -C 0.001 -S 1' -3732968666673530290
+(9) bayes.NaiveBayes '' 5995231201785697655
+
