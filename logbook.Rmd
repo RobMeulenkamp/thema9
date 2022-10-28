@@ -5,6 +5,9 @@ date: '2022-09-14'
 output:
   html_document: default
   pdf_document: default
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -21,24 +24,32 @@ library(naniar)
 library(tibble)
 library(ggpubr)
 library(pROC)
+library(plotrix)
+library(foreign)
+library(tools)
 ```
 
 # EDA logbook
 
 ## Introduction
-Cardiovascular diseases (CVD) is one of the most common death globally. This makes up for 31% of all deaths worldwide. Heart disease is provoked by atherosclerosis. This means the buildup of plaques or fatty deposits in the walls of the coronary arteries in several years.  
-The coronary arteries enclose the outside of the heart and provide blood oxygen and nutrients to the heart muscle. If the plaque builds up in the arteries, there is fewer space for blood to flow naturally and deliver oxygen to the heart. This possibly cause angina (chest pain) or a heart attack. Four out of five CVD deaths are result of heart attacks and strokes. One-third of these deaths appear in people under the age of 70.
+
+Cardiovascular diseases (CVD) is one of the most common death globally.
+This makes up for 31% of all deaths worldwide.
+Heart disease is provoked by atherosclerosis.
+This means the buildup of plaques or fatty deposits in the walls of the coronary arteries in several years.\
+The coronary arteries enclose the outside of the heart and provide blood oxygen and nutrients to the heart muscle.
+If the plaque builds up in the arteries, there is fewer space for blood to flow naturally and deliver oxygen to the heart.
+This possibly cause angina (chest pain) or a heart attack.
+Four out of five CVD deaths are result of heart attacks and strokes.
+One-third of these deaths appear in people under the age of 70.
 
 This data set include 11 features that are viable to use for predicting a heart disease.
 
-
-Data:
-https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download
-
+Data: <https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download>
 
 ## Research question
 
-Is it feasible to produce an accurate machine learning algorithm that predicts the possibility of developing a heart disease in a wide array of patients? 
+Is it feasible to produce an accurate machine learning algorithm that predicts the possibility of developing a heart disease in a wide array of patients?
 
 ## Read the data
 
@@ -49,7 +60,12 @@ heartdata <- read.csv("data/heart.csv")
 ```
 
 ## Parsing data
-Parsing data to change the type of variables. If someone is diagnosed it's either 0 or 1. This can be confusing sometimes. It's easier to keep track with True and False values. 
+
+Parsing data to change the type of variables.
+If someone is diagnosed it's either 0 or 1.
+This can be confusing sometimes.
+It's easier to keep track with True and False values.
+
 ```{r Cleaning}
 
 heartdata$HeartDisease <- as.logical(heartdata$HeartDisease)
@@ -86,46 +102,54 @@ for (column in value_targets){
 
 }
 
-heartdata$ChestPainType <- NULL
+
 
 
 ```
-Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis.
 
+Splitting the different conditions is done for ChestPainType otherwise the column can't be used for making Principal component analysis.
 
 \pagebreak
 
 ## Codebook
-The data set doesn't include a codebook with annotated header or columns. The codebook consist of the column name, full name, and the type of the data. This codebook is handmade. 
+
+The data set doesn't include a codebook with annotated header or columns.
+The codebook consist of the column name, full name, and the type of the data.
+This codebook is handmade.
+
 ```{r Codebook}
 
 codebook <- read.csv("data/codebook.csv")
 pander(codebook, style = "rmarkdown", caption ="Overview created codebook")
 
 ```
+
 Most of the attributes are categorical instead of numerical data.
-Extra information about every attribute can be found in the following link. 
-(Attribute information)[https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download]
+Extra information about every attribute can be found in the following link.
+(Attribute information)[<https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download>]
 
 \pagebreak
-The most important is that values are read correctly and has to be examined. 
+
+The most important is that values are read correctly and has to be examined.
+
 ```{r}
 
 str(heartdata)
 
 ```
-fortunately it looks like every column have been read correctly. 
 
-
-
-
+fortunately it looks like every column have been read correctly.
 
 \pagebreak
-Inspecting the different columns if they contain Na's.This is done to get a better understanding about the data set. 
+
+Inspecting the different columns if they contain Na's.This is done to get a better understanding about the data set.
+
 ```{r Missing values}
 colSums(is.na(heartdata))
 ```
-The data set don't have missing values. Now it's time to inspect the data with a summary.
+
+The data set don't have missing values.
+Now it's time to inspect the data with a summary.
 
 ## Summary
 
@@ -136,12 +160,19 @@ rownames(tab) <- c("Min", "1st. Qu", "Median", "Mean", "3rd. Qu", "Max")
 kable(tab, caption = "5 num of numerical valies") %>% 
   kable_styling(latex_options="scale_down")
 ```
-The first thing that stands out is the 0 value as minimum value in the column RestingBP. If a person has a resting blood pressure of 0 it means that the person is dead. Column cholesterol has 0 values too as minimum value. A person has mostly of the time cholesterol level higher than 0. This needs to be investigate carefully when the data is cleaned before using the machine learning algorithm.    
+
+The first thing that stands out is the 0 value as minimum value in the column RestingBP.
+If a person has a resting blood pressure of 0 it means that the person is dead.
+Column cholesterol has 0 values too as minimum value.
+A person has mostly of the time cholesterol level higher than 0.
+This needs to be investigate carefully when the data is cleaned before using the machine learning algorithm.
 
 \newpage
 
-## Visualisations 
+## Visualisations
+
 ### Histogram Age vs Heart disease
+
 ```{r fig.cap="Histogram of age against frequency for HD", fig.align="center"}
 ggplot(heartdata, aes(Age, fill=HeartDisease)) +
   geom_histogram(bins=10) +
@@ -150,11 +181,13 @@ ggplot(heartdata, aes(Age, fill=HeartDisease)) +
 ```
 
 In the graph above, there is possibly a correlation between age and heart disease.
-When the age increases the frequency of heart diseases do as well. 
+When the age increases the frequency of heart diseases do as well.
 This needs more investigation.
 
 \newpage
+
 ### Age linked to heartdisease
+
 ```{r Age related to heartdisease, fig.cap="Percentage of patients impacted by HD", fig.align="center"}
 ggplot(heartdata) + 
   geom_smooth(aes(Age, HeartDisease * 100), method="loess", formula = "y ~ x", color=hue_pal()(1)) + 
@@ -165,14 +198,17 @@ ggplot(heartdata) +
   xlim(c(25, 80))
 
 ```
-With Smooth line it is possible to see that the percentage of patients increases with age and heart disease. The only thing is that after the age of 65 there is starting a decline.  
+
+With Smooth line it is possible to see that the percentage of patients increases with age and heart disease.
+The only thing is that after the age of 65 there is starting a decline.\
 The reason for the decline is perhaps death for the people above 65 who have a heart disease.
 
-For people above the age of 65 are more likely to develop a heart disease which can cause heart attacks, strokes or heart failures. This is potentially the cause of the decline. 
+For people above the age of 65 are more likely to develop a heart disease which can cause heart attacks, strokes or heart failures.
+This is potentially the cause of the decline.
 Source: [Heart Health and Aging](https://www.nia.nih.gov/health/heart-health-and-aging)
 
-
 \newpage
+
 ### Ratio between males and females
 
 ```{r Ratio male - female, fig.cap="Ratio Male - Female", fig.align="center"}
@@ -182,12 +218,13 @@ ggplot(heartdata) +
   ylab("frequency")
 
 ```
-The barplot shows the ratio between male and female. The ratio is more skewed towards males.
-The most noticeable is that males have a higher proportion to have heartdisease in comparison with the females. For the female, it is more likely to not have a heartdisease. 
 
+The barplot shows the ratio between male and female.
+The ratio is more skewed towards males.
+The most noticeable is that males have a higher proportion to have heartdisease in comparison with the females.
+For the female, it is more likely to not have a heartdisease.
 
-
-### Chest pain against heart disease 
+### Chest pain against heart disease
 
 ```{r Different chest pain types against heart disease, fig.cap="proportions between chest pain with or without heart disease", fig.align="center"}
 
@@ -200,33 +237,34 @@ ggplot(heartdata) +
 
 In the barplot above, Asymptomatic pain (ASY) is the most frequent chest pain type for people with heart disease.
 
-
 \newpage
+
 ### Effect of chest pain type against the resting blood pressure
+
 ```{r density plot, fig.align="center", fig.cap="Density plot Resting blood pressue against chest pain"}
 ggplot(heartdata, aes(x=RestingBP, group=ChestPainType, colour=ChestPainType)) + 
   geom_density()
 ```
-The pain type doesn't seem to have an effect on the blood pressure of the individual. 
 
+The pain type doesn't seem to have an effect on the blood pressure of the individual.
 
 ### influence of Electrocardiogram (ECG) against heart disease
 
 ECG type:
 
-| Code | Explanation |
-|---|---|
-| Normal | Normal | 
-| ST | Having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of > 0.05 mV). | 
-| LVH | Showing probable or definite left ventricular hypertrophy by Estes' criteria. |
+| Code   | Explanation                                                                                       |
+|------------------------------------|------------------------------------|
+| Normal | Normal                                                                                            |
+| ST     | Having ST-T wave abnormality (T wave inversions and/or ST elevation or depression of \> 0.05 mV). |
+| LVH    | Showing probable or definite left ventricular hypertrophy by Estes' criteria.                     |
 
-
-
-Electrocardiogram (ECG or EKG) is a straightforward test that records and detects your heart's electrical activity. An ECG shows how fast your heart is beating and shows if your rhythm of your heartbeats is steady or irregular. But also indicates the strength and timing of the electical impulses passing through each part of your hart. 
+Electrocardiogram (ECG or EKG) is a straightforward test that records and detects your heart's electrical activity.
+An ECG shows how fast your heart is beating and shows if your rhythm of your heartbeats is steady or irregular.
+But also indicates the strength and timing of the electical impulses passing through each part of your hart.
 Source: [Electrocardiogram](https://www.nhlbi.nih.gov/health/heart-tests)
 
-
 \newpage
+
 ```{r Electrocardiogram, fig.align="center" fig.cap="Frequency different ECG types against heart disease"}
 
 ggplot(heartdata) +
@@ -239,13 +277,15 @@ freq_RestingECG <- table(heartdata$RestingECG)
 
 ```
 
-The frequency for a normal (`r freq_RestingECG[2]`) electrical activity is exceptionally high in comparison with ST (`r freq_RestingECG[3]`)  and  LVH (`r freq_RestingECG[1]`). The ratio between people with heart disease and without heart disease are almost even with a normal electrical activity. The restingECG column probably won't be the deciding factor in predicting people with heart disease. This needs more investigation with principal component analysis in order to determine the value of the restingECG column and other columns as well. 
-
-
-
+The frequency for a normal (`r freq_RestingECG[2]`) electrical activity is exceptionally high in comparison with ST (`r freq_RestingECG[3]`) and LVH (`r freq_RestingECG[1]`).
+The ratio between people with heart disease and without heart disease are almost even with a normal electrical activity.
+The restingECG column probably won't be the deciding factor in predicting people with heart disease.
+This needs more investigation with principal component analysis in order to determine the value of the restingECG column and other columns as well.
 
 \newpage
+
 ### Comparison between MaxHR against age grouped by sex
+
 ```{r MaxHR against age , fig.align="center", fig.cap="Maximum heart rate against age and grouped by sex"}
 ggplot(heartdata, aes(Age, MaxHR, group=Sex, colour = Sex)) + 
   geom_point(alpha=0.10) + geom_smooth(se=F) + ggtitle("Comparison between MaxHR and age grouped by sex")
@@ -254,28 +294,30 @@ count_table <- heartdata %>% group_by(Sex) %>%
       filter(Age > 55) %>%
       count(Sex)
 ```
-In the graph above goes MaxHR down when people become older. Only the line goes up again after the age of 55 for females. This is possible because of the lack of data for females after the age of 55. Females contain `r count_table[[2]][1]` amount of data and for males this is `r count_table[[2]][2]` data points. 
-The ratio is not balanced. To analyse this a density plot is made for the difference in datapoints per sex.  
 
-
-
-
+In the graph above goes MaxHR down when people become older.
+Only the line goes up again after the age of 55 for females.
+This is possible because of the lack of data for females after the age of 55.
+Females contain `r count_table[[2]][1]` amount of data and for males this is `r count_table[[2]][2]` data points.
+The ratio is not balanced.
+To analyse this a density plot is made for the difference in datapoints per sex.
 
 \newpage
+
 ### Density of age grouped by sex
+
 ```{r density plot sex, fig.align="center", fig.cap="Amount of datapoints per age grouped by sex"}
 ggplot(heartdata) + 
   geom_density(aes(Age, colour=Sex, fill=Sex), alpha=0.05) + 
   ggtitle("Density plot comparing sexes")
 ```
+
 The above graph shows that there is not much difference in age comparing male and female.
 
-
-
-
-
 \newpage
+
 ### Principal component analysis
+
 ```{r Principal component analysis, fig.align="center" fig.cap="PCA variable plot"}
 
 
@@ -296,27 +338,198 @@ fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
 # Contributions of variables to PC2
 fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
 ```
-In the circle diagram and in the contribution diagram the asymptomatic pain and non-Anginal pain has the biggest contribution for a positive or negative diagnosing the heart disease. One downside is that it's hard to predict for patients who don't have visible symptoms. Two other important contributors are MaxHR and Age. These two variables are important because it could be measured for every patient thus are viable. Last, the column ExerciseAngina has an important contribution. If it's possible to diagnose the patient with exercise angina this column becomes vital for predicting people with heart disease.  
 
-
+In the circle diagram and in the contribution diagram the asymptomatic pain (ASY) and non-Anginal pain (NAP) has the biggest contribution for a positive or negative diagnosing the heart disease.
+One downside is that it's hard to predict for patients who don't have visible symptoms.
+Two other important contributors are MaxHR and Age.
+These two variables are important because it could be measured for every patient thus are viable.
+Last, the column ExerciseAngina has an important contribution.
+If it's possible to diagnose the patient with exercise angina this column becomes vital for predicting people with heart disease.
 
 ### Cleaning
+
 Cholesterol 0-values are replaced with the median of the cholesterol column due to missing measurements.
-Median is less sensitive to outliers in comparison with the mean. 
+The column RestingBP has one measurement with 0 and is replaced with the median as well.
+Median is less sensitive to outliers in comparison with the mean.
+
 ```{r}
 
 heartdata$Cholesterol[heartdata$Cholesterol == 0] <- NA
+heartdata$RestingBP[heartdata$RestingBP == 0] <- NA
 
 
+heartdata$ChestPainType <- NULL
 # replace NA's with the median for every column
 for(i in 1:ncol(heartdata)){
   heartdata[is.na(heartdata[,i]), i] <- median(heartdata[,i], na.rm = TRUE)
 }
 
 heartdata <- heartdata %>% relocate(HeartDisease, .after = last_col())
-write.csv(heartdata, "data/clean_heart.csv", row.names = FALSE)
+write.csv(heartdata, "data/clean_heart_.csv", row.names = FALSE)
 
 ```
+
+\newpage
+
+### Machine Learning
+
+Investigation is needed to determine at least the two best machine learning algorithms.
+ZeroR and OneR are used as baseline.
+
+```{r}
+
+Algorithms <- c("ZeroR", "OneR", "J48", "RandomForestTree", "AdaBoostM1", "IBK", "SMO", "SGD", "NaiveBayes")
+
+Params <- c("rules.ZeroR '' 48055541465867954", "rules.OneR '-B 6' -3459427003147861443", "trees.J48 '-C 0.25 -M 2' -217733168393644444", "trees.RandomForest '-P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1' 1116839470751428698", "meta.AdaBoostM1 '-P 100 -S 1 -I 10 -W trees.DecisionStump' -1178107808933117974", "lazy.IBk '-K 1 -W 0 -A \"weka.core.neighboursearch.LinearNNSearch -A \\\"weka.core.EuclideanDistance -R first-last\\\"\"' -3080186098777067172", "functions.SMO '-C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"functions.supportVector.PolyKernel -E 1.0 -C 250007\" -calibrator \"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\"' -6585883636378691736", "functions.SGD '-F 0 -L 0.01 -R 1.0E-4 -E 500 -C 0.001 -S 1' -3732968666673530290", "bayes.NaiveBayes '' 5995231201785697655")
+
+Accuracy <- c(55.34,  81.37, 85.48,   86.49,   85.78,   80.64,  85.75,   85.95,  84.47)
+se <- c(0.20, 3.43, 3.77, 3.45, 3.32, 3.77, 3.60, 3.59, 3.76)
+sig_zero <- c(F, rep(T, 8))
+
+used_algo <- data.frame(Algorithm = Algorithms, WekaParameter = Params)
+
+
+kable(used_algo, caption = "Used algorithms with respective Weka parameters") %>% 
+  kable_styling(latex_options="scale_down")
+
+```
+
+Performance overview is made to display how well the algorithms performed and if the algorithm is significant better in comparison to ZeroR.
+
+```{r}
+
+#Error barplot 
+#http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
+ggplot(used_algo, aes(Accuracy, Algorithms)) +
+    geom_col(aes(fill = sig_zero)) +
+    geom_text(aes(label=Accuracy), vjust=1.6, color="white", size=3.5, 
+              position = position_dodge(width = 1), hjust = 1) +
+    xlab("Accuracy (%)") +
+    ggtitle("Performance in percentage with different algorithms") +
+    scale_fill_discrete(name = "Significant better vs ZeroR") +
+    geom_errorbarh(aes(xmax = Accuracy + se, xmin = Accuracy - se, height = .2))
+
+
+```
+
+In the graph above, every algorithm is significant better in comparison with ZeroR.
+This indicates that the algorithm doesn't predict by chance.
+RandomForestTree and SGD are one of the best two performing algorithms in comparison with other algorithms.
+For every algorithm except ZeroR there is a certain overlap between the standard deviation error barplots (black sticks).
+This probably indicates that the difference is not statistically significant between the algorithms.
+Statistical test is needed to investigate the statistical significance.
+The standard deviation error bars are relative small and it suggest that the spread of the data are clumped around the mean.
+
+\newpage
+
+## Exploring Meta-learners
+
+Investigating the effect of meta-learners with the goal to improve or explore algorithms.
+For example Stacking, Bagging, and Voting are used for exploration.
+
+```{r}
+algorithms <- c("ZeroR", "RandomForestTree", "J48", "NaiveBayes", "AdaBoostM1", "SMO", "Vote", "Stacking", "Bagging")
+
+params <- c("rules.ZeroR '' 48055541465867954", "trees.RandomForest '-P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1' 1116839470751428698", "trees.J48 '-C 0.25 -M 2' -217733168393644444", "bayes.NaiveBayes '' 5995231201785697655", "meta.AdaBoostM1 '-P 100 -S 1 -I 10 -W trees.DecisionStump' -1178107808933117974", "functions.SMO '-C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"functions.supportVector.PolyKernel -E 1.0 -C 250007\" -calibrator \"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\"' -6585883636378691736", "meta.Vote '-S 1 -B \"trees.J48 -C 0.25 -M 2\" -B \"trees.RandomForest -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1\" -B \"bayes.NaiveBayes \" -B \"meta.AdaBoostM1 -P 100 -S 1 -I 10 -W trees.DecisionStump\" -B \"functions.SMO -C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \\\"functions.supportVector.PolyKernel -E 1.0 -C 250007\\\" -calibrator \\\"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\\\"\" -R AVG' -637891196294399624", "meta.Stacking '-X 10 -M \"meta.AdaBoostM1 -P 100 -S 1 -I 10 -W trees.DecisionStump\" -S 1 -num-slots 1 -B \"meta.AdaBoostM1 -P 100 -S 1 -I 10 -W trees.DecisionStump\" -B \"bayes.NaiveBayes \" -B \"functions.SMO -C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \\\"functions.supportVector.PolyKernel -E 1.0 -C 250007\\\" -calibrator \\\"functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\\\"\" -B \"trees.J48 -C 0.25 -M 2\" -B \"trees.RandomForest -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1\"' 5134738557155845452", "meta.Bagging '-P 100 -S 1 -num-slots 1 -I 10 -W trees.J48 -- -C 0.25 -M 2' -115879962237199703")
+
+accuracy <- c(55.34, 86.49, 85.48, 84.47, 85.78, 85.75, 86.62, 86.30, 85.40)
+
+Se <- c(0.20, 3.45, 3.77, 3.76, 3.32, 3.60, 3.44, 3.44, 3.93)
+
+meta_algo <- data.frame(Algorithm = algorithms, WekaParameter = params)
+kable(meta_algo, caption = "Meta-learners for extra exploration") %>% 
+  kable_styling(latex_options="scale_down")
+```
+
+Overview of the performance for different (meta) algorithms.
+The plots contain standard deviation error bar.
+This is done for investigating the spread around the mean or maybe indication about statistically signification between different algorithms.
+Most important aspect is to find the best performing algorithm which can be used as model.
+
+```{r}
+ggplot(meta_algo, aes(accuracy, algorithms)) +
+    geom_col(aes(fill = sig_zero)) +
+    geom_text(aes(label=accuracy), vjust=1.6, color="white", size=3.5, 
+              position = position_dodge(width = 1), hjust = 1) +
+    xlab("Accuracy (%)") +
+    ggtitle("Performance in percentage with different (meta) algorithms") +
+    scale_fill_discrete(name = "Significant better vs ZeroR") +
+    geom_errorbarh(aes(xmax = accuracy + Se, xmin = accuracy - Se, height = .2))
+```
+
+The barplot shows that every algorithm is significant better in comparison with ZeroR.
+The algorithms Voting, Stacking, and Bagging are added to the graph.
+Voting and Stacking makes the top three best algorithms with RandomForest.
+Bagging has a percentage of 85.4 for classifying.
+It match the accuracy of AdamBoostm1, J48 and SMO.
+The black sticks are the standard deviation error bars and there is overlap between the algorithms except for ZeroR.
+The standard deviation error bars are small.
+This conclude\
+that the spread of the data are clumped around the mean and the overlap indicate that the difference is not statistically significant between different algorithms.
+Statistical test needs to be performed to confirm if there is not a statistically significant difference between the algorithms.
+
+```{r}
+exp_test <- read.csv("data/experimenter.test.csv")
+
+#tapply(exp_test$Percent_correct, exp_test$Key_Scheme, sd)
+
+#https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5
+tapply(exp_test$Percent_correct, exp_test$Key_Scheme, std.error)
+```
+
+\newpage
+
+## ROC and AUC analysis
+
+ROC curve is used as model validation for SGD, AdaBoostm1, and RandomForest, these are the last three algorithms left to investigate further.
+ROC is plotted with the True positive on y-axis and False positive on the x-axis.
+The goal of ROC analysis is to create an excellent model with AUC value near to the one.
+The worst possible model has a AUC value near zero and when the AUC value is equal to 0.5 the model has no idea about the class separation for example ZeroR.
+
+```{r}
+
+makePlots <- function(filePath) {
+  file <- paste0(filePath, list.files(filePath))
+  plot <- lapply(file, rocPlot)
+  print(file)
+
+  return(plot)
+}
+
+
+rocPlot <- function(y){
+  rocLoad <- read.arff(y)
+  title <- file_path_sans_ext(basename(y))
+  plot <- ggplot(rocLoad) + 
+   geom_path(aes(x = `False Positive Rate`, y=`True Positive Rate`, color = Threshold), size=2) + scale_colour_gradient2(low = "yellow", mid = "orange", high = "red", midpoint = 0.55) + labs(color="P-value positive") + ggtitle(title)
+  return(plot) }
+
+ROCres <- makePlots("data/ROC/")
+
+do.call(ggarrange, c(ROCres, ncol = 2))
+
+
+```
+
+
+\newpage
+## Cost-sensitive classification
+
+One the most important thing to take into account are the false negatives when doing classification for people diagnosing with heart disease. The amount of people who are diagnosed negative but are actually positive for heart disease must be low as possible.
+In order to achieve this, it's possible to use a cost matrix. This result in a penalty for the algorithm when the prediction is negative for heart disease but the patient is actually positive for the heart disease. Comparing the confusion matrix between the default settings algorithm and the algorithm with cost sensitive matrix shows an excellent overview. 
+Applying a cost matrix could possibly lead to lowering in accuracy for the algorithm. It's crucial to find balance between keeping the accuracy high as possible but lowering the false negatives as well.  
+
+
+Default cost matrix [0.0,1.0;1.0,0.0]:
+   a   b   <-- classified as
+ 339  71 |   a = FALSE
+  47 461 |   b = TRUE
+
+Cost matrix [0.0,1.0;3.0,0.0]:
+   a   b   <-- classified as
+ 300 110 |   a = FALSE
+  22 486 |   b = TRUE
+
 
 
 
