@@ -481,7 +481,7 @@ tapply(exp_test$Percent_correct, exp_test$Key_Scheme, std.error)
 
 ## ROC and AUC analysis
 
-ROC curve is used as model validation for SGD, AdaBoostm1, and RandomForest, these are the last three algorithms left to investigate further.
+ROC curve is used as model validation for SGD, AdaBoostm1, and RandomForest, these are on of the best three algorithms left to investigate further.
 ROC is plotted with the True positive on y-axis and False positive on the x-axis.
 The goal of ROC analysis is to create an excellent model with AUC value near to the one.
 The worst possible model has a AUC value near zero and when the AUC value is equal to 0.5 the model has no idea about the class separation for example ZeroR.
@@ -510,27 +510,53 @@ do.call(ggarrange, c(ROCres, ncol = 2))
 
 
 ```
-
+The algorithms SGD has the lowest AUC value from the three different algorithms. Both  AdaBoostm1 and RandomForest AUC values are almost the same value. The little difference isn't significant enough to decide which algorithm to pick. False positives and false negatives are not the same. It's more important to lower the false negatives because of this area under the curve won't be used for further analysis. 
 
 \newpage
 ## Cost-sensitive classification
 
-One the most important thing to take into account are the false negatives when doing classification for people diagnosing with heart disease. The amount of people who are diagnosed negative but are actually positive for heart disease must be low as possible.
+One the most important thing to take into account are the resulting false negatives when doing classification for people diagnosing with heart disease. The amount of people who are diagnosed negative but are actually positive for heart disease must be low as possible.
 In order to achieve this, it's possible to use a cost matrix. This result in a penalty for the algorithm when the prediction is negative for heart disease but the patient is actually positive for the heart disease. Comparing the confusion matrix between the default settings algorithm and the algorithm with cost sensitive matrix shows an excellent overview. 
 Applying a cost matrix could possibly lead to lowering in accuracy for the algorithm. It's crucial to find balance between keeping the accuracy high as possible but lowering the false negatives as well.  
 
 
+After choosing a cost matrix of [0 0 4 0] for false negatives Randomforest performs significant lower in comparison with the default settings. 
+
+
+### RandomForest:
+Accuracy: 
+86.49%
 Default cost matrix [0.0,1.0;1.0,0.0]:
    a   b   <-- classified as
  339  71 |   a = FALSE
   47 461 |   b = TRUE
 
+Accuracy:
+86.54%
+Cost matrix [0.0,1.0;2.0,0.0]  
+   a   b   <-- classified as
+ 315  95 |   a = FALSE
+  28 480 |   b = TRUE
+  
+Accuracy:
+85.24%
 Cost matrix [0.0,1.0;3.0,0.0]:
    a   b   <-- classified as
  300 110 |   a = FALSE
   22 486 |   b = TRUE
 
 
+### AdaBoostm1
+Accuracy:
+83.44%
+Cost matrix [0.0,1.0;3.0,0.0]
+   a   b   <-- classified as
+ 293 117 |   a = FALSE
+  31 477 |   b = TRUE
 
+Randomforest accuracy increases 0.05 percent with cost matrix of [0 0 2 0] and lowering the false negatives with 19 instances. The accuracy decrease around 1.3% when using the cost matrix [0 0 3 0] and still maintaining an accuracy of 85.24%. The false negatives decrease with 6 instances but the false positives increases with 15 instances. Using the cost matrix of [0 0 3 0] decreases false negatives a little more than 50% in comparison with the default matrix. It's more viable to lower the false negatives instead of increasing the false positives. AdaBoostm1 performs worse in accuracy and the amount of false negatives in comparison with Randomforest with a cost matrix of [0 0 3 0]. That's why the final model Randomforest with cost matrix of [0 0 3 0] will be selected.
+
+Weka scheme: **meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0; 3.0 0.0]\" -S 1 -W trees.RandomForest -- -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404**
+With an accuracy of 85.24%
 
 
