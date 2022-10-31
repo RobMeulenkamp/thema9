@@ -524,39 +524,39 @@ After choosing a cost matrix of [0 0 4 0] for false negatives Randomforest perfo
 
 
 ### RandomForest:
-Accuracy: 
-86.49%
-Default cost matrix [0.0,1.0;1.0,0.0]:
+Accuracy: 87.08%
+Default cost matrix: [0.0,1.0;1.0,0.0]
+Confusion matrix:
    a   b   <-- classified as
- 339  71 |   a = FALSE
-  47 461 |   b = TRUE
+ 338  72 |   a = FALSE
+  45 463 |   b = TRUE
 
-Accuracy:
-86.54%
-Cost matrix [0.0,1.0;2.0,0.0]  
+Accuracy: 86.71%
+Cost matrix: [0.0,1.0;2.0,0.0]  
+Confusion matrix:
    a   b   <-- classified as
- 315  95 |   a = FALSE
+ 323  87 |   a = FALSE
   28 480 |   b = TRUE
   
-Accuracy:
-85.24%
-Cost matrix [0.0,1.0;3.0,0.0]:
+Accuracy: 85.33%
+Cost matrix: [0.0,1.0;3.0,0.0]
+Confusion matrix:
    a   b   <-- classified as
- 300 110 |   a = FALSE
-  22 486 |   b = TRUE
+ 297 113 |   a = FALSE
+  17 491 |   b = TRUE
 
 
 ### AdaBoostm1
-Accuracy:
-83.44%
-Cost matrix [0.0,1.0;3.0,0.0]
+Accuracy: 83.44%
+Cost matrix: [0.0,1.0;3.0,0.0]
+Confusion matrix:
    a   b   <-- classified as
  293 117 |   a = FALSE
   31 477 |   b = TRUE
 
-Randomforest accuracy increases 0.05 percent with cost matrix of [0 0 2 0] and lowering the false negatives with 19 instances. The accuracy decrease around 1.3% when using the cost matrix [0 0 3 0] and still maintaining an accuracy of 85.24%. The false negatives decrease with 6 instances but the false positives increases with 15 instances. Using the cost matrix of [0 0 3 0] decreases false negatives a little more than 50% in comparison with the default matrix. It's more viable to lower the false negatives instead of increasing the false positives. AdaBoostm1 performs worse in accuracy and the amount of false negatives in comparison with Randomforest with a cost matrix of [0 0 3 0]. That's why the final model Randomforest with cost matrix of [0 0 3 0] will be selected.
+Randomforest accuracy decrease 0.37 percent with cost matrix of [0 0 2 0] and lowering the false negatives with 19 instances. The accuracy decrease around 1.4% when using the cost matrix [0 0 3 0] and still maintaining an accuracy of 85.33%. The false negatives decrease with 11 instances but the false positives increases with 26 instances compared with cost matrix [0 0 2 0]. Using the cost matrix of [0 0 3 0] decreases false negatives a little more than 50% in comparison with the default matrix. It's more viable to lower the false negatives instead of increasing the false positives. AdaBoostm1 performs worse in accuracy and the amount of false negatives in comparison with Randomforest with a cost matrix of [0 0 3 0]. That's why the final model Randomforest with cost matrix of [0 0 3 0] will be selected.
 
-Weka scheme: **meta.CostSensitiveClassifier '-cost-matrix \"[0.0 1.0; 3.0 0.0]\" -S 1 -W trees.RandomForest -- -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1' -110658209263002404**
-With an accuracy of 85.24%
+Weka scheme: **weka.classifiers.meta.CostSensitiveClassifier -cost-matrix "[0.0 1.0; 3.0 0.0]" -S 1 -W weka.classifiers.trees.RandomForest -- -P 100 -I 100 -num-slots 12 -K 2 -M 1.0 -V 0.001 -S 1**
+With an accuracy of 85.33%
 
 
