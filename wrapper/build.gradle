@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+
+jar {
+    manifest {
+        attributes "Main-Class": "org.example.WekaRunner"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
+
+    // https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable
+    implementation group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.8.5'
+
+    implementation 'commons-io:commons-io:2.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
