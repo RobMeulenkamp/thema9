@@ -1,0 +1,13 @@
+Name;Description;Category
+Age;age of patient;In years
+Sex;sex of patient;M: male, F: female
+ChestPainType;Chest pain type;TA: Typical Angina, ATA: Atypical Angina, NAP: Non-Anginal Pain, ASY: Asymptomatic
+RestingBP;Resting blood pressure [mm/hg];mm Hg
+Cholesterol;Serum cholesterol [mm/dl];mm/dl
+FastingBS;Fasting blood sugar;1: if FastingBS > 120 mg/dl, 0: otherwise
+RestingECG;Resting electrocardiogram;Normal: Normal, ST: having ST-T wave abnormality, LVH: showing left ventricular hypertrophy by Estes' criteria
+MaxHR;Maximum heartrate;Numeric value between 60 and 202
+ExcerciseAngina;Excercised-induced angina;Y: Yes, N: No
+Oldpeak;Oldpeak = ST;Numeric value measured in depression
+ST_Slope;the slope of the peak exercise ST;Up: upsloping, Flat: flat, Down: downsloping
+HeartDisease;Output class;1: heart disease, 0: Normal
