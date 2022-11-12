@@ -3,8 +3,8 @@ title: "heart_failure"
 author: "Rob Meulenkamp"
 date: '2022-09-14'
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 editor_options: 
   markdown: 
     wrap: sentence
@@ -16,15 +16,11 @@ library(ggplot2)
 library(pander)
 library(kableExtra)
 library(scales)
-library(reshape2)
 library(factoextra)
 library(dplyr)
 library(tidyr)
-library(naniar)
 library(tibble)
 library(ggpubr)
-library(pROC)
-library(plotrix)
 library(foreign)
 library(tools)
 ```
@@ -45,11 +41,11 @@ One-third of these deaths appear in people under the age of 70.
 
 This data set include 11 features that are viable to use for predicting a heart disease.
 
-Data: <https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download>
+Data: https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction?resource=download
 
 ## Research question
 
-Is it feasible to produce an accurate machine learning algorithm that predicts the possibility of developing a heart disease in a wide array of patients?
+Is it feasible to produce an accurate (False negatives <= 5%) machine learning algorithm that predicts the possibility of developing a heart disease in a wide array of patients?
 
 ## Read the data
 
@@ -157,7 +153,7 @@ Now it's time to inspect the data with a summary.
 summ <- summary(heartdata[c("Age", "RestingBP", "Cholesterol", "MaxHR", "Oldpeak")])
 tab <- sub('.*:', '', summ)
 rownames(tab) <- c("Min", "1st. Qu", "Median", "Mean", "3rd. Qu", "Max")
-kable(tab, caption = "5 num of numerical valies") %>% 
+kable(tab, caption = "5 number summary of original dataset") %>% 
   kable_styling(latex_options="scale_down")
 ```
 
@@ -265,7 +261,7 @@ Source: [Electrocardiogram](https://www.nhlbi.nih.gov/health/heart-tests)
 
 \newpage
 
-```{r Electrocardiogram, fig.align="center" fig.cap="Frequency different ECG types against heart disease"}
+```{r Electrocardiogram, fig.align="center", fig.cap="Frequency different ECG types against heart disease"}
 
 ggplot(heartdata) +
   geom_bar(aes(RestingECG, fill=HeartDisease)) + ggtitle("resting electrocardiogram vs heart disease")   + 
@@ -318,7 +314,7 @@ The above graph shows that there is not much difference in age comparing male an
 
 ### Principal component analysis
 
-```{r Principal component analysis, fig.align="center" fig.cap="PCA variable plot"}
+```{r Principal component analysis, fig.align="center", fig.cap="PCA variable plot"}
 
 
 heartdataPca <- heartdata[, c(1,4,5,6,8, 9, 13:16)]
@@ -398,8 +394,6 @@ Performance overview is made to display how well the algorithms performed and if
 
 ```{r}
 
-#Error barplot 
-#http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
 ggplot(used_algo, aes(Accuracy, Algorithms)) +
     geom_col(aes(fill = sig_zero)) +
     geom_text(aes(label=Accuracy), vjust=1.6, color="white", size=3.5, 
@@ -468,14 +462,6 @@ This conclude\
 that the spread of the data are clumped around the mean and the overlap indicate that the difference is not statistically significant between different algorithms.
 Statistical test needs to be performed to confirm if there is not a statistically significant difference between the algorithms.
 
-```{r}
-exp_test <- read.csv("data/experimenter.test.csv")
-
-#tapply(exp_test$Percent_correct, exp_test$Key_Scheme, sd)
-
-#https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5
-tapply(exp_test$Percent_correct, exp_test$Key_Scheme, std.error)
-```
 
 \newpage
 
@@ -520,7 +506,7 @@ In order to achieve this, it's possible to use a cost matrix. This result in a p
 Applying a cost matrix could possibly lead to lowering in accuracy for the algorithm. It's crucial to find balance between keeping the accuracy high as possible but lowering the false negatives as well.  
 
 
-After choosing a cost matrix of [0 0 4 0] for false negatives Randomforest performs significant lower in comparison with the default settings. 
+After choosing a cost matrix of [0 0 4 0] for false negatives Randomforest performs significant lower in comparison with the default settings. The algorithm voting won't be used as final model, because applying a cost matrix significantly lower the accuracy. 
 
 
 ### RandomForest:
